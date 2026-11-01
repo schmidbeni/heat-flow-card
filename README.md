@@ -2,7 +2,7 @@
 
 [![HACS](https://img.shields.io/badge/HACS-custom-41BDF5.svg)](https://hacs.xyz/)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![release](https://img.shields.io/github/v/release/schmidbeni/heatpump-flow-card?display_name=tag&color=0369a1)](https://github.com/schmidbeni/heatpump-flow-card/releases/latest)
+[![release](https://img.shields.io/github/v/release/schmidbeni/heat-flow-card?display_name=tag&color=0369a1)](https://github.com/schmidbeni/heat-flow-card/releases/latest)
 [![demo](https://img.shields.io/badge/live-demo-0ea5e9)](https://xerolux.github.io/heatpump-flow-card/)
 
 An animated hydraulic scheme for Home Assistant. The card draws your heating
