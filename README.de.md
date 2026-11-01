@@ -3,14 +3,14 @@
 [![HACS](https://img.shields.io/badge/HACS-custom-41BDF5.svg)](https://hacs.xyz/)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![release](https://img.shields.io/github/v/release/schmidbeni/heat-flow-card?display_name=tag&color=0369a1)](https://github.com/schmidbeni/heat-flow-card/releases/latest)
-[![demo](https://img.shields.io/badge/live-demo-0ea5e9)](https://xerolux.github.io/heatpump-flow-card/)
+[![demo](https://img.shields.io/badge/live-demo-0ea5e9)](https://schmidbeni.github.io/heat-flow-card/)
 
 Ein animiertes Hydraulikschema für Home Assistant. Die Karte zeichnet deine
 Heizungsanlage so, wie sie verrohrt ist – Wärmepumpe, Pufferspeicher,
 Warmwasser, Photovoltaik, Solarthermie und bis zu sieben Heizkreise – und stellt
 die Live-Werte genau dort dar, wo sie hingehören.
 
-*[English version](README.md)* · **[Live-Demo](https://xerolux.github.io/heatpump-flow-card/)** · **[Wiki](https://github.com/Xerolux/heatpump-flow-card/wiki)**
+*[English version](README.md)* · **[Live-Demo](https://schmidbeni.github.io/heat-flow-card/)** · **[Wiki](https://github.com/schmidbeni/heat-flow-card/wiki)**
 
 ![Layout „full“](docs/images/full.png)
 
@@ -65,7 +65,7 @@ lässt sich mit einem eigenen Block ergänzen oder mit `false` entfernen.
 | `direct-dual` | | | | | 2 |
 | `direct-dhw` | | ● | | | 2 |
 
-Bis zu **sieben** Heizkreise (A–G) sind möglich – `circuits:` sticht immer das,
+Bis zu **zwölf** Heizkreise (A–L) sind möglich – `circuits:` sticht immer das,
 was das Layout mitbringt.
 
 ## Galerie
