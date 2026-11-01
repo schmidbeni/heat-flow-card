@@ -1,4 +1,4 @@
-![Heat Pump Flow Card](docs/brand/logo-plate.png)
+![Heat Flow Card](docs/brand/logo-plate.png)
 
 [![HACS](https://img.shields.io/badge/HACS-custom-41BDF5.svg)](https://hacs.xyz/)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
