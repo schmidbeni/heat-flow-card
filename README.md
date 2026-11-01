@@ -63,7 +63,7 @@ own block or removed with `false`.
 | `direct-dual` | | | | | 2 |
 | `direct-dhw` | | ● | | | 2 |
 
-Up to **seven** circuits are supported (A–G) — `circuits:` wins over whatever
+Up to **twelve** circuits are supported (A–L) — `circuits:` wins over whatever
 the layout brings.
 
 ## Gallery
