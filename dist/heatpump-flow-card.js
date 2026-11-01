@@ -5243,11 +5243,11 @@ window.customCards = window.customCards || [];
 if (!window.customCards.some((card) => card.type === CARD_TAG)) {
   window.customCards.push({
     type: CARD_TAG,
-    name: CARD_ELEMENT_TAKEN ? "Heat Pump Flow Card (Xerolux)" : "Heat Pump Flow Card",
+    name: CARD_ELEMENT_TAKEN ? "Heat Flow Card (schmidbeni)" : "Heat Flow Card",
     description:
       "Animated hydraulic scheme for a heat pump with buffer tank, hot water, PV, solar thermal and up to twelve heating circuits.",
     preview: true,
-    documentationURL: "https://github.com/Xerolux/heatpump-flow-card",
+    documentationURL: "https://github.com/schmidbeni/heat-flow-card",
   });
 }
 
