@@ -3,14 +3,14 @@
 [![HACS](https://img.shields.io/badge/HACS-custom-41BDF5.svg)](https://hacs.xyz/)
 [![MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![release](https://img.shields.io/github/v/release/schmidbeni/heat-flow-card?display_name=tag&color=0369a1)](https://github.com/schmidbeni/heat-flow-card/releases/latest)
-[![demo](https://img.shields.io/badge/live-demo-0ea5e9)](https://xerolux.github.io/heatpump-flow-card/)
+[![demo](https://img.shields.io/badge/live-demo-0ea5e9)](https://schmidbeni.github.io/heatpump-flow-card/)
 
 An animated hydraulic scheme for Home Assistant. The card draws your heating
 plant the way it is actually plumbed — heat pump, buffer tank, hot water,
 photovoltaics, solar thermal and up to seven heating circuits — and puts the
 live values right where they belong on the drawing.
 
-*[Deutsche Version](README.de.md)* · **[Live demo](https://xerolux.github.io/heatpump-flow-card/)** · **[Wiki](https://github.com/Xerolux/heatpump-flow-card/wiki)**
+*[Deutsche Version](README.de.md)* · **[Live demo](https://schmidbeni.github.io/heat-flow-card/)** · **[Wiki](https://github.com/schmidbeni/heat-flow-card/wiki)**
 
 ![Full layout](docs/images/full.png)
 
@@ -142,7 +142,7 @@ Add a card, search for **Heat Pump Flow Card**, and pick your entities in the
 editor. The equivalent YAML for a small system:
 
 ```yaml
-type: custom:heatpump-flow-card
+type: custom:heat-flow-card
 layout: single
 heatpump:
   entity: switch.heat_pump
@@ -506,9 +506,9 @@ red-flow / blue-return scheme.
 
 ## More
 
-* **[Live demo](https://xerolux.github.io/heatpump-flow-card/)** — the real card
+* **[Live demo](https://schmidbeni.github.io/heat-flow-card/)** — the real card
   in your browser, no Home Assistant needed
-* **[Wiki](https://github.com/Xerolux/heatpump-flow-card/wiki)** — installation,
+* **[Wiki](https://github.com/schmidbeni/heat-flow-card/wiki)** — installation,
   every option, controls, troubleshooting, development
 * **[Examples](examples)** — ten ready-made configurations, including a whole
   dashboard view
@@ -551,9 +551,6 @@ The card is free and stays free. If it makes your plant easier to live with and
 you would like to support the work, any of these is hugely motivating — and none
 of them is expected:
 
-[![Buy Me A Coffee](https://img.shields.io/badge/Buy%20Me%20A%20Coffee-Buy%20me%20a%20coffee!-yellow?logo=buy-me-a-coffee&style=for-the-badge)](https://www.buymeacoffee.com/xerolux)
-[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20the%20work-ff5e5b?logo=ko-fi&style=for-the-badge)](https://ko-fi.com/xerolux)
-[![PayPal](https://img.shields.io/badge/PayPal-Thanks%20for%20your%20support!-blue?logo=paypal&style=for-the-badge)](https://paypal.me/xerolux)
-[![GitHub Sponsors](https://img.shields.io/badge/GitHub-Sponsors-ea4aaa?logo=githubsponsors&logoColor=white&style=for-the-badge)](https://github.com/sponsors/Xerolux)
+
 
 [Tesla Referral](https://ts.la/sebastian564489) · or simply star the repository.
