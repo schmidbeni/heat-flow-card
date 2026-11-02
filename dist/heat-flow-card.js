@@ -1,9 +1,9 @@
 /*!
- * heatpump-flow-card
+ * heat-flow-card
  * An animated hydraulic scheme for Home Assistant: heat pump, buffer tank,
  * domestic hot water, PV, solar thermal and up to twelve heating circuits.
  *
- * https://github.com/Xerolux/heatpump-flow-card
+ * https://github.com/schmidbeni/heat-flow-card
  * MIT License - Copyright (c) 2026 Xerolux
  */
 
