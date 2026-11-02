@@ -119,22 +119,22 @@ which way its own energy is travelling.
 ### HACS (recommended)
 
 1. HACS → three dots menu → **Custom repositories**
-2. Repository: `https://github.com/Xerolux/heatpump-flow-card`, category
+2. Repository: `https://github.com/schmidbeni/heat-flow-card`, category
    **Dashboard** (older HACS versions call it *Lovelace*/*Plugin*)
 3. Install **Heat Pump Flow Card**, then reload your browser.
 
 ### Manual
 
-1. Copy `dist/heatpump-flow-card.js` to `config/www/heatpump-flow-card.js`.
+1. Copy `dist/heat-flow-card.js` to `config/www/heat-flow-card.js`.
 2. Settings → Dashboards → three dots → **Resources** → **Add resource**
-   * URL: `/local/heatpump-flow-card.js`
+   * URL: `/local/heat-flow-card.js`
    * Type: **JavaScript module**
 
 **Another card with the same name?** Element names are global to the
 dashboard, and one other hydraulic scheme card uses the same tag. If that card
-loaded first, this one registers as `heatpump-flow-card-xerolux` — the browser
+loaded first, this one registers as `heat-flow-card-schmidbeni` — the browser
 console says so — and your dashboard addresses it with
-`type: custom:heatpump-flow-card-xerolux`. Both cards keep working.
+`type: custom:heat-flow-card-schmidbeni`. Both cards keep working.
 
 ## Quick start
 
@@ -144,7 +144,7 @@ editor. The equivalent YAML for a small system:
 ```yaml
 type: custom:heat-flow-card
 layout: single
-heatpump:
+heat:
   entity: switch.heat_pump
   flow_temp: sensor.hp_flow_temperature
   return_temp: sensor.hp_return_temperature
@@ -180,7 +180,7 @@ Values that can be operated are marked with a dotted underline, mode chips with
 a chevron. Two extra fields exist for this:
 
 ```yaml
-heatpump:
+heat:
   mode: select.system_mode          # chip on the heat pump, tap to switch mode
 circuits:
   - mode: climate.circuit_a         # chip on the circuit
@@ -226,7 +226,7 @@ afterwards:
   and one tap offers off / automatic / boost.
 
 ```yaml
-heatpump:
+heat:
   mode: select.system_mode        # what it was told to do, and how you change it
   status: sensor.operating_state  # what it is doing right now
   aux_heat: binary_sensor.second_heat_generator
@@ -302,7 +302,7 @@ readable, so on a 4K or 8K panel it stops there and centres instead.
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `type` | string | — | `custom:heatpump-flow-card` |
+| `type` | string | — | `custom:heat-flow-card` |
 | `layout` | string | `dual` | `compact`, `single`, `dual` or `full` |
 | `title` | string | — | Card heading |
 | `animation` | boolean | `true` | Move the dots through the pipes |
@@ -311,7 +311,7 @@ readable, so on a 4K or 8K panel it stops there and centres instead.
 | `controls` | boolean | `true` | `false` makes every tap open more-info |
 | `zoom` | boolean | `true` | The magnifier that opens the card full screen |
 | `electrics_style` | string | `tiles` | `tiles`, `flow` (round nodes on a line), or `hub` (source-to-device routes) |
-| `heatpump` | object | `{}` | see below |
+| `heat` | object | `{}` | see below |
 | `buffer` | object \| `false` | shown | Buffer tank |
 | `dhw` | object \| `false` | `full` only | Domestic hot water |
 | `pv` | object \| `false` | `full` only | Photovoltaics |
@@ -319,7 +319,7 @@ readable, so on a 4K or 8K panel it stops there and centres instead.
 | `wood_stove` | object \| `false` | off | A second, hand-fed heat source — see below |
 | `circuits` | list \| number | 1–2 circuits | Heating circuits, up to 7 (A–G); a plain count builds that many placeholder circuits |
 
-### `heatpump`
+### `heat`
 
 | Option | Description |
 | --- | --- |
@@ -406,7 +406,7 @@ reading:
 ```yaml
   house:
     entity: sensor.house_power
-    subtract: [heatpump, wallbox, consumers]   # any of the three
+    subtract: [heat, wallbox, consumers]   # any of the three
 ```
 
 **Big loads of your own** — air conditioning, a dryer, a server rack — get
@@ -480,7 +480,7 @@ heat pump state decides.
 Every value accepts an entity id or an object:
 
 ```yaml
-heatpump:
+heat:
   power:
     entity: sensor.hp_power
     name: Input

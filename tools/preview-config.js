@@ -50,7 +50,7 @@ const underfloor = {
 
 window.previewConfigs = {
   "wood-stove": {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "dual",
     title: "A wood stove alongside the heat pump",
     heatpump: { ...heatpump, name: "Vaillant Arotherm" },
@@ -65,7 +65,7 @@ window.previewConfigs = {
     circuits: [radiators, underfloor],
   },
   extras: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "dhw-dual",
     title: "Defrosting, with the element in the tank running",
     heatpump: {
@@ -96,7 +96,7 @@ window.previewConfigs = {
     circuits: [radiators, underfloor],
   },
   "dhw-dual": {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "dhw-dual",
     title: "Without PV and solar thermal",
     heatpump,
@@ -112,7 +112,7 @@ window.previewConfigs = {
     circuits: [radiators, underfloor],
   },
   "pv-dual": {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "pv-dual",
     title: "With PV, without solar thermal",
     heatpump,
@@ -121,7 +121,7 @@ window.previewConfigs = {
     circuits: [radiators, underfloor],
   },
   circuits: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "full",
     title: "Four circuits, each with its own state",
     pv: false,
@@ -165,7 +165,7 @@ window.previewConfigs = {
     ],
   },
   advanced: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "dual",
     title: "Without a buffer tank, four circuits",
     buffer: false,
@@ -187,7 +187,7 @@ window.previewConfigs = {
     ],
   },
   compact: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "compact",
     title: "Heating, compact",
     heatpump,
@@ -195,14 +195,14 @@ window.previewConfigs = {
     circuits: [radiators],
   },
   single: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "single",
     heatpump,
     buffer,
     circuits: [underfloor],
   },
   dual: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "dual",
     title: "Heat pump and heating circuits",
     heatpump,
@@ -210,7 +210,7 @@ window.previewConfigs = {
     circuits: [radiators, underfloor],
   },
   full: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "full",
     title: "Heating plant",
     heatpump,
@@ -248,7 +248,7 @@ window.previewConfigs = {
   // The electrical side, with the heat pump in standby: the sun is on the
   // roof, and every watt of it goes to the battery and the grid.
   electrics: {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "full",
     title: "Heating plant",
     heatpump: { ...heatpump, power: "sensor.hp_power_idle", state_entity: undefined, entity: "switch.heat_pump" },
@@ -290,7 +290,7 @@ window.previewConfigs = {
   // custom consumers, and a house reading that no longer counts the heat
   // pump twice.
   "energy-flow": {
-    type: "custom:heatpump-flow-card",
+    type: "custom:heat-flow-card",
     layout: "full",
     title: "Energy bus, round nodes",
     electrics_style: "flow",
@@ -335,7 +335,7 @@ window.previewConfigs = {
 };
 
 window.previewConfigs["energy-hub"] = {
-  type: "custom:heatpump-flow-card", layout: "direct", title: "Energy hub · estimated distribution",
+  type: "custom:heat-flow-card", layout: "direct", title: "Energy hub · estimated distribution",
   electrics_style: "hub",
   heatpump: { ...heatpump, name: "Xtend Warmtepomp", power: "sensor.hub_hp", state_entity: "binary_sensor.hub_compressor", cop: null, compressor: null },
   pv: {

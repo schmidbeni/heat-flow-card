@@ -121,23 +121,23 @@ zeigt, in welche Richtung sein Strom fließt.
 ### HACS (empfohlen)
 
 1. HACS → Drei-Punkte-Menü → **Benutzerdefinierte Repositories**
-2. Repository: `https://github.com/Xerolux/heatpump-flow-card`, Kategorie
+2. Repository: `https://github.com/schmidbeni/heat-flow-card`, Kategorie
    **Dashboard** (in älteren HACS-Versionen *Lovelace*/*Plugin*)
 3. **Heat Pump Flow Card** installieren, danach den Browser neu laden.
 
 ### Manuell
 
-1. `dist/heatpump-flow-card.js` nach `config/www/heatpump-flow-card.js` kopieren.
+1. `dist/heat-flow-card.js` nach `config/www/heat-flow-card.js` kopieren.
 2. Einstellungen → Dashboards → Drei-Punkte-Menü → **Ressourcen** →
    **Ressource hinzufügen**
-   * URL: `/local/heatpump-flow-card.js`
+   * URL: `/local/heat-flow-card.js`
    * Typ: **JavaScript-Modul**
 
 **Eine andere Karte mit demselben Namen?** Element-Namen gelten dashboardweit,
 und eine andere hydraulische Karte nutzt denselben Tag. Lädt jene Karte
-zuerst, registriert sich diese als `heatpump-flow-card-xerolux` — die
+zuerst, registriert sich diese als `heat-flow-card-schmidbeni` — die
 Browser-Konsole sagt es — und das Dashboard spricht sie mit
-`type: custom:heatpump-flow-card-xerolux` an. Beide Karten funktionieren.
+`type: custom:heat-flow-card-schmidbeni` an. Beide Karten funktionieren.
 
 ## Schnellstart
 
@@ -145,9 +145,9 @@ Karte hinzufügen, nach **Heat Pump Flow Card** suchen und im Editor die
 Entitäten auswählen. Das gleiche als YAML für eine kleine Anlage:
 
 ```yaml
-type: custom:heatpump-flow-card
+type: custom:heat-flow-card
 layout: single
-heatpump:
+heat:
   entity: switch.waermepumpe
   flow_temp: sensor.wp_vorlauf
   return_temp: sensor.wp_ruecklauf
@@ -186,7 +186,7 @@ Bedienbare Werte bekommen eine gepunktete Unterstreichung, Betriebsart-Chips
 einen kleinen Pfeil. Dafür gibt es zwei zusätzliche Felder:
 
 ```yaml
-heatpump:
+heat:
   mode: select.system_mode          # Chip an der Wärmepumpe, Klick wechselt die Betriebsart
 circuits:
   - mode: climate.circuit_a         # Chip am Heizkreis
@@ -232,7 +232,7 @@ schlecht erklären kann:
   Temperatur. Mit `heater_mode` bietet ein Klick Aus / Automatik / Boost an.
 
 ```yaml
-heatpump:
+heat:
   mode: select.system_mode        # was sie tun soll, und worüber du es änderst
   status: sensor.operating_state  # was sie gerade tatsächlich tut
   aux_heat: binary_sensor.second_heat_generator
@@ -311,7 +311,7 @@ Designgröße würde die Zeichnung nur größer, nicht lesbarer – auf einem 4K
 
 | Option | Typ | Standard | Beschreibung |
 | --- | --- | --- | --- |
-| `type` | string | — | `custom:heatpump-flow-card` |
+| `type` | string | — | `custom:heat-flow-card` |
 | `layout` | string | `dual` | `compact`, `single`, `dual` oder `full` |
 | `title` | string | — | Überschrift der Karte |
 | `animation` | boolean | `true` | Punkte durch die Rohre bewegen |
@@ -320,7 +320,7 @@ Designgröße würde die Zeichnung nur größer, nicht lesbarer – auf einem 4K
 | `controls` | boolean | `true` | `false` = jeder Klick öffnet nur more-info |
 | `zoom` | boolean | `true` | Die Lupe, die die Karte bildschirmfüllend öffnet |
 | `electrics_style` | string | `tiles` | `tiles`, `flow` (runde Knoten auf einer Linie) oder `hub` (Verbindungen zwischen Quellen und Geräten) |
-| `heatpump` | object | `{}` | siehe unten |
+| `heat` | object | `{}` | siehe unten |
 | `buffer` | object \| `false` | sichtbar | Pufferspeicher |
 | `dhw` | object \| `false` | nur `full` | Warmwasser |
 | `pv` | object \| `false` | nur `full` | Photovoltaik |
@@ -328,7 +328,7 @@ Designgröße würde die Zeichnung nur größer, nicht lesbarer – auf einem 4K
 | `wood_stove` | object \| `false` | aus | Zweiter, von Hand beschickter Wärmeerzeuger — siehe unten |
 | `circuits` | Liste \| number | 1–2 Kreise | Heizkreise, bis zu 7 (A–G); eine nackte Zahl erzeugt so viele Platzhalter-Kreise |
 
-### `heatpump`
+### `heat`
 
 | Option | Beschreibung |
 | --- | --- |
@@ -414,7 +414,7 @@ Hausanzeige heraus:
 ```yaml
   house:
     entity: sensor.hausverbrauch
-    subtract: [heatpump, wallbox, consumers]   # beliebig aus diesen drei
+    subtract: [heat, wallbox, consumers]   # beliebig aus diesen drei
 ```
 
 **Eigene große Verbraucher** — Klimaanlage, Trockner, Serverschrank — bekommen
@@ -490,7 +490,7 @@ ist, der Zustand der Wärmepumpe.
 Jeder Wert akzeptiert eine Entitäts-ID oder ein Objekt:
 
 ```yaml
-heatpump:
+heat:
   power:
     entity: sensor.wp_leistung
     name: Aufnahme
@@ -517,9 +517,9 @@ Schema Vorlauf rot / Rücklauf blau.
 
 ## Mehr
 
-* **[Live-Demo](https://xerolux.github.io/heatpump-flow-card/)** – die echte
+* **[Live-Demo](https://schmidbeni.github.io/heat-flow-card/)** – die echte
   Karte im Browser, ganz ohne Home Assistant
-* **[Wiki](https://github.com/Xerolux/heatpump-flow-card/wiki)** – Installation,
+* **[Wiki](https://github.com/schmidbeni/heat-flow-card/wiki)** – Installation,
   alle Optionen, Bedienung, Problemlösung, Entwicklung
 * **[Beispiele](examples)** – zehn fertige Konfigurationen, darunter ein
   komplettes Dashboard

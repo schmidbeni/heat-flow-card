@@ -126,10 +126,10 @@ style. Existing dashboards retain their selected style; `hub` is opt-in.
 
 - **Another card with the same element name no longer breaks this one.** A
   hydraulic scheme card from another author registers the same
-  `<heatpump-flow-card>` tag; whichever script loaded first won and the other
+  `<heat-flow-card>` tag; whichever script loaded first won and the other
   card silently vanished. When the name is taken, this card now registers as
-  `heatpump-flow-card-xerolux` and says so in the console — a dashboard then
-  addresses it as `type: custom:heatpump-flow-card-xerolux`, and both cards
+  `heat-flow-card-schmidbeni` and says so in the console — a dashboard then
+  addresses it as `type: custom:heat-flow-card-schmidbeni`, and both cards
   keep working.
 - **Circuits and pumps follow what Home Assistant reports, not what was
   asked.** A climate entity set to `heat` that answers with
@@ -578,30 +578,30 @@ Every contribution is a huge motivation. Thank you!
 
 ### Feedback & Contributions
 
-- [Report a bug](https://github.com/Xerolux/heatpump-flow-card/issues/new)
-- [Request a feature](https://github.com/Xerolux/heatpump-flow-card/issues/new)
-- [Wiki](https://github.com/Xerolux/heatpump-flow-card/wiki)
-- [Live demo](https://xerolux.github.io/heatpump-flow-card/)
+- [Report a bug](https://github.com/schmidbeni/heat-flow-card/issues/new)
+- [Request a feature](https://github.com/schmidbeni/heat-flow-card/issues/new)
+- [Wiki](https://github.com/schmidbeni/heat-flow-card/wiki)
+- [Live demo](https://schmidbeni.github.io/heat-flow-card/)
 
 ---
 
-**Developed by:** [Xerolux](https://github.com/Xerolux)
+**Developed by:** [schmidbeni](https://github.com/schmidbeni)
 **Card for:** any heat pump, solar thermal system, photovoltaics or heating
 controller that reports to Home Assistant
 **License:** MIT
 
-[Unreleased]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.11.0-beta.1...HEAD
-[1.11.0-beta.1]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.10.0...v1.11.0-beta.1
-[1.10.0]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.8.3...v1.10.0
-[1.8.3]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.8.2...v1.8.3
-[1.8.2]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.8.1...v1.8.2
-[1.8.1]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.8.0...v1.8.1
-[1.8.0]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.7.0...v1.8.0
-[1.7.0]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.6.4...v1.7.0
-[1.6.4]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.6.3...v1.6.4
-[1.6.3]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.6.2...v1.6.3
-[1.6.2]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.6.1...v1.6.2
-[1.6.1]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.6.0...v1.6.1
-[1.6.0]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.3.1...v1.6.0
-[1.3.1]: https://github.com/Xerolux/heatpump-flow-card/compare/v1.3.0...v1.3.1
-[1.3.0]: https://github.com/Xerolux/heatpump-flow-card/releases/tag/v1.3.0
+[Unreleased]: https://github.com/schmidbeni/heat-flow-card/compare/v1.11.0-beta.1...HEAD
+[1.11.0-beta.1]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.10.0...v1.11.0-beta.1
+[1.10.0]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.8.3...v1.10.0
+[1.8.3]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.8.2...v1.8.3
+[1.8.2]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.8.1...v1.8.2
+[1.8.1]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.8.0...v1.8.1
+[1.8.0]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.7.0...v1.8.0
+[1.7.0]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.6.4...v1.7.0
+[1.6.4]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.6.3...v1.6.4
+[1.6.3]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.6.2...v1.6.3
+[1.6.2]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.6.1...v1.6.2
+[1.6.1]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.6.0...v1.6.1
+[1.6.0]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.3.1...v1.6.0
+[1.3.1]: https://github.com/Schmidbeni/heat-flow-card/compare/v1.3.0...v1.3.1
+[1.3.0]: https://github.com/Schmidbeni/heat-flow-card/releases/tag/v1.3.0

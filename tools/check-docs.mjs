@@ -14,7 +14,7 @@ const problems = [];
 const read = (relative) => readFileSync(resolve(root, relative), "utf8");
 
 /* ---- versions agree ---------------------------------------------------- */
-const source = read("dist/heatpump-flow-card.js");
+const source = read("dist/heat-flow-card.js");
 const cardVersion = source.match(/CARD_VERSION = "([^"]+)"/)[1];
 const packageVersion = JSON.parse(read("package.json")).version;
 const lock = JSON.parse(read("package-lock.json"));
@@ -56,13 +56,13 @@ for (const file of readdirSync(resolve(root, "examples")).filter((f) => f.endsWi
       node.forEach(collect);
       return;
     }
-    if (node.type === "custom:heatpump-flow-card") cards.push(node);
+    if (node.type === "custom:heat-flow-card") cards.push(node);
     for (const value of Object.values(node)) collect(value);
   };
   collect(config);
 
   if (!cards.length) {
-    problems.push(`${file} contains no heatpump-flow-card`);
+    problems.push(`${file} contains no heat-flow-card`);
   }
   for (const card of cards) {
     if (card.layout && !layouts.has(card.layout)) {
@@ -115,7 +115,7 @@ for (const file of markdown) {
   ];
   for (const target of references) {
     if (target.startsWith("http")) {
-      const remote = target.match(/heatpump-flow-card\/main\/(docs\/(?:images|brand)\/[^)\s"]+)/);
+      const remote = target.match(/heat-flow-card\/main\/(docs\/(?:images|brand)\/[^)\s"]+)/);
       if (remote && !existsSync(resolve(root, remote[1]))) {
         problems.push(`${file} links the missing image ${remote[1]}`);
       }

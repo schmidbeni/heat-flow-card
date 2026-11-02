@@ -2,7 +2,7 @@
 <html lang="de">
   <head>
     <meta charset="utf-8" />
-    <title>heatpump-flow-card preview</title>
+    <title>heat-flow-card preview</title>
     <style>
       :root {
         --primary-text-color: #212121;
@@ -42,7 +42,7 @@
       customElements.define("ha-card", HaCard);
     </script>
     <script src="./demo-hass.js"></script>
-    <script src="../dist/heatpump-flow-card.js"></script>
+    <script src="../dist/heat-flow-card.js"></script>
     <script src="./preview-config.js"></script>
     <script>
       window.moreInfo = [];
@@ -55,7 +55,7 @@
       const configs = window.previewConfigs;
       for (const name of Object.keys(configs)) {
         if (only && only !== name) continue;
-        const card = document.createElement("heatpump-flow-card");
+        const card = document.createElement("heat-flow-card");
         card.setConfig(configs[name]);
         card.hass = hass;
         card.id = `card-${name}`;

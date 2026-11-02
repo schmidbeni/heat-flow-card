@@ -101,7 +101,7 @@ await shoot(
            animated, and operable by tapping.
          </div>
          <div style="margin-top:30px;font-size:22px;color:#6f88a0">
-           github.com/Xerolux/heatpump-flow-card
+           github.com/schmidbeni/heat-flow-card
          </div>
        </div>
      </div>

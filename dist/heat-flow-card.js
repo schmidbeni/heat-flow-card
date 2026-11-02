@@ -13,7 +13,7 @@
 const CARD_VERSION = "1.10.1";
 
 console.info(
-  `%c HEATPUMP-FLOW-CARD %c v${CARD_VERSION} `,
+  `%c HEAT-FLOW-CARD %c v${CARD_VERSION} `,
   "color:#fff;background:#0369a1;font-weight:700;border-radius:3px 0 0 3px;padding:2px 4px",
   "color:#0369a1;background:#e0f2fe;font-weight:700;border-radius:0 3px 3px 0;padding:2px 4px"
 );
@@ -24,21 +24,21 @@ console.info(
  * loads first owns the name; a second definition would throw, or with a guard
  * silently lose. If the tag is taken when this file loads, the card registers
  * under a fallback name instead, so both cards keep working - such a setup
- * addresses this card as `type: custom:heatpump-flow-card-xerolux`.
+ * addresses this card as `type: custom:heat-flow-card-xerolux`.
  */
-const CARD_ELEMENT_TAKEN = Boolean(window.customElements && customElements.get("heatpump-flow-card"));
+const CARD_ELEMENT_TAKEN = Boolean(window.customElements && customElements.get("heat-flow-card"));
 const EDITOR_ELEMENT_TAKEN = Boolean(
-  window.customElements && customElements.get("heatpump-flow-card-editor")
+  window.customElements && customElements.get("heat-flow-card-editor")
 );
-const CARD_TAG = CARD_ELEMENT_TAKEN ? "heatpump-flow-card-xerolux" : "heatpump-flow-card";
+const CARD_TAG = CARD_ELEMENT_TAKEN ? "heat-flow-card-xerolux" : "heat-flow-card";
 const EDITOR_TAG = EDITOR_ELEMENT_TAKEN
-  ? "heatpump-flow-card-xerolux-editor"
-  : "heatpump-flow-card-editor";
+  ? "heat-flow-card-schmidbeni-editor"
+  : "heat-flow-card-editor";
 if (CARD_ELEMENT_TAKEN) {
   console.warn(
-    "[heatpump-flow-card] the element <heatpump-flow-card> is already registered by another " +
-      "card. This card is available as <heatpump-flow-card-xerolux> - use " +
-      "`type: custom:heatpump-flow-card-xerolux` in your dashboard."
+    "[heat-flow-card] the element <heat-flow-card> is already registered by another " +
+      "card. This card is available as <heat-flow-card-schmidbeni> - use " +
+      "`type: custom:heat-flow-card-schmidbeni` in your dashboard."
   );
 }
 
@@ -4337,10 +4337,10 @@ class HeatpumpFlowCard extends HTMLElement {
       this._scene = null;
       const error = document.createElement("div");
       error.className = "hpfc-error";
-      error.textContent = `heatpump-flow-card: ${err && err.message ? err.message : err}`;
+      error.textContent = `heat-flow-card: ${err && err.message ? err.message : err}`;
       card.appendChild(error);
       // eslint-disable-next-line no-console
-      console.error("heatpump-flow-card", err);
+      console.error("heat-flow-card", err);
       return;
     }
 
@@ -4364,7 +4364,7 @@ class HeatpumpFlowCard extends HTMLElement {
         updater();
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error("heatpump-flow-card update failed", err);
+        console.error("heat-flow-card update failed", err);
       }
     }
     this._refreshControl();
@@ -4569,7 +4569,7 @@ class HeatpumpFlowCard extends HTMLElement {
     this.closeControl();
 
     const host = document.createElement("div");
-    host.className = "heatpump-flow-card-zoom";
+    host.className = "heat-flow-card-zoom";
     host.style.cssText = "position:fixed;inset:0;z-index:9999";
     host.setAttribute("role", "dialog");
     host.setAttribute("aria-modal", "true");
@@ -5171,7 +5171,7 @@ class HeatpumpFlowCardEditor extends HTMLElement {
 
   /** Form data -> config. */
   _toConfig(data) {
-    const config = { type: this._config.type || "custom:heatpump-flow-card" };
+    const config = { type: this._config.type || "custom:heat-flow-card" };
     if (data.title) config.title = data.title;
     config.layout = data.layout || "dual";
     if (data.animation === false) config.animation = false;
