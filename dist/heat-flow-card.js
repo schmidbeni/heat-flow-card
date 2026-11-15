@@ -10,7 +10,7 @@
 (() => {
 "use strict";
 
-const CARD_VERSION = "1.10.3";
+const CARD_VERSION = "1.10.4";
 
 console.info(
   `%c HEAT-FLOW-CARD %c v${CARD_VERSION} `,
@@ -1115,6 +1115,7 @@ const TEXTS = {
     wood_stove: "Wood stove",
     hp_locked: "Heat pump locked",
     return_lift: "Return lift (mixing valve)",
+    circuit_pump: "Circulation pump (all circuits)",
     dhw_heatpump: "Hot water heat pump",
     return_valve: "Return valve",
     return_pump: "Return boost pump",
@@ -1171,6 +1172,7 @@ const TEXTS = {
     wood_stove: "Holzofen",
     hp_locked: "WP gesperrt",
     return_lift: "Rücklaufhochhaltung (Mischer)",
+    circuit_pump: "Umwälzpumpe (alle Heizkreise)",
     dhw_heatpump: "Warmwasser-WP",
     return_valve: "Rücklaufventil",
     return_pump: "Rücklaufhochhaltung",
@@ -2914,11 +2916,15 @@ function drawCircuit(scene, box, cfg) {
   // Pump, mixer and emitter along the bottom
   const baseY = box.y + box.h - 34;
   let cursor = box.x + 30;
-  drawPump(scene, group, cursor, baseY, cfg.pump, {
-    label: `${cfg.name || fallbackName} – ${texts.pump}`,
-    running,
-  });
-  cursor += 34;
+  // With one shared circulation pump (`circuit_pump`) the circuits get none of
+  // their own.
+  if (!scene.config.circuit_pump) {
+    drawPump(scene, group, cursor, baseY, cfg.pump, {
+      label: `${cfg.name || fallbackName} – ${texts.pump}`,
+      running,
+    });
+    cursor += 34;
+  }
 
   if (cfg.valve) {
     const valve = svgEl("g", { class: "hpfc-valve" });
@@ -3267,6 +3273,7 @@ function normalizeConfig(raw) {
     dhw: null,
     dhw_heatpump: null,
     wood_stove: null,
+    circuit_pump: null,
     circuits: [],
   };
 
@@ -3292,6 +3299,13 @@ function normalizeConfig(raw) {
     config.wood_stove.lock_heatpump = wanted.lock_heatpump !== false;
     if (toDhw) config.dhw.coil = true;
   }
+
+  // `heatpump.position: below_buffer` puts the heating heat pump under the buffer
+  // (needs the tank above the buffer); `circuit_pump` is the one circulation pump
+  // that serves all heating circuits.
+  config.heatpump.position =
+    raw.heatpump && raw.heatpump.position === "below_buffer" ? "below_buffer" : "left";
+  config.circuit_pump = asField(raw.circuit_pump);
 
   // The hot water tank normally hangs on the rails next to the heating
   // circuits. With `position: above_buffer` it stands above the buffer instead
@@ -3397,6 +3411,7 @@ function collectWatchedEntities(config) {
     config.dhw,
     config.dhw_heatpump,
     config.wood_stove,
+    config.circuit_pump,
     ...config.circuits,
   ];
   for (const section of sections) {
@@ -3465,7 +3480,10 @@ function buildScene(card) {
   // its loop runs along two lanes over the whole drawing.
   const woodToDhw = Boolean(config.wood_stove && config.wood_stove.connect_to === "dhw" && config.dhw);
   const dhwAbove = Boolean(config.dhw && config.dhw.position === "above_buffer" && config.buffer);
-  const dhwAboveW = Math.min(consumerWidth, 256);
+  // Heating heat pump below the buffer: the circuits start at the top of the
+  // drawing next to a slimmer tank, which saves a whole band of height.
+  const hpBelow = Boolean(dhwAbove && config.buffer && config.heatpump.position === "below_buffer");
+  const dhwAboveW = hpBelow ? 160 : Math.min(consumerWidth, 256);
   // A heat pump of its own for the tank stands in the left column, above the
   // wood stove, and feeds the tank from the left.
   const dhwHp = Boolean(dhwAbove && config.dhw_heatpump);
@@ -3475,7 +3493,12 @@ function buildScene(card) {
       (refCircuitShown(config.dhw_heatpump) ? REF_CIRCUIT_HEIGHT : 0)
     : 0;
   const wsGap = woodToDhw ? 36 : G.gapY;
-  const topLaneH = dhwHp ? dhwHpHeight + 36 : dhwAbove ? dhwHeight + 40 : woodToDhw ? 96 : 0;
+  const topLaneH = hpBelow ? 0 : dhwHp ? dhwHpHeight + 36 : dhwAbove ? dhwHeight + 40 : woodToDhw ? 96 : 0;
+  // fixed vertical stack of the middle column (tank, buffer, heat pump)
+  const hpbBufY = G.pad + (dhwHp ? 24 : 0) + dhwHeight + 40;
+  const hpbBufH = config.dense ? 240 : G.buffer.max;
+  const hpbY = hpbBufY + hpbBufH + 48;
+  const hpbStoveY = G.pad + (dhwHp ? dhwHpHeight + 36 : 60);
   const leftHeight = config.wood_stove ? hpHeight + wsGap + wsHeight : hpHeight;
 
   // ---- horizontal placement -------------------------------------------
@@ -3483,7 +3506,8 @@ function buildScene(card) {
   const srcX = x;
   if (showSources) x += G.pv.w + G.sourceGap;
   const hpX = x;
-  x += G.hp.w + (config.wood_stove ? G.hpGapWithWoodStove : G.hpGap);
+  const leftColumn = !hpBelow || Boolean(dhwHp || config.wood_stove);
+  x += (leftColumn ? G.hp.w : 0) + (hpBelow || config.wood_stove ? G.hpGapWithWoodStove : G.hpGap);
   let bufX = null;
   if (config.buffer) {
     bufX = x;
@@ -3507,16 +3531,25 @@ function buildScene(card) {
     (config.solar ? G.solar.h : 0) +
     (config.pv && config.solar ? G.gapY : 0);
   const bufferMin = config.dense ? 200 : G.buffer.min;
-  const contentH = Math.max(rightH, leftHeight + 30, sourcesH, config.buffer ? bufferMin : 0);
+  const contentH = hpBelow
+    ? Math.max(
+        rightH,
+        hpbY + hpHeight - G.pad,
+        config.wood_stove ? hpbStoveY + wsHeight - G.pad : 0,
+        dhwHp ? dhwHpHeight : 0,
+        sourcesH
+      )
+    : Math.max(rightH, leftHeight + 30, sourcesH, config.buffer ? bufferMin : 0);
 
   const topY = G.pad + topLaneH;
   const leftTop = dhwHp ? topY : topY + (contentH - leftHeight) / 2;
-  const hpY = woodToDhw ? leftTop + wsHeight + wsGap : leftTop;
-  const wsY = woodToDhw ? leftTop : hpY + hpHeight + G.gapY;
+  const hpDrawX = hpBelow ? bufX - 115 : hpX;
+  const hpY = hpBelow ? hpbY : woodToDhw ? leftTop + wsHeight + wsGap : leftTop;
+  const wsY = hpBelow ? hpbStoveY : woodToDhw ? leftTop : hpY + hpHeight + G.gapY;
   const srcY = topY + (contentH - sourcesH) / 2;
-  const bufH = Math.min(contentH, G.buffer.max);
-  const bufY = topY + (contentH - bufH) / 2;
-  let cursorY = topY + (contentH - rightH) / 2;
+  const bufH = hpBelow ? hpbBufH : Math.min(contentH, G.buffer.max);
+  const bufY = hpBelow ? hpbBufY : topY + (contentH - bufH) / 2;
+  let cursorY = hpBelow ? G.pad : topY + (contentH - rightH) / 2;
   for (const item of consumers) {
     item.y = cursorY;
     cursorY += item.h + G.gapY;
@@ -3562,7 +3595,7 @@ function buildScene(card) {
   };
 
   // ---- nodes ------------------------------------------------------------
-  const heatpump = drawHeatPump(scene, { x: hpX, y: hpY, w: G.hp.w, h: hpHeight }, config.heatpump);
+  const heatpump = drawHeatPump(scene, { x: hpDrawX, y: hpY, w: G.hp.w, h: hpHeight }, config.heatpump);
   scene.flags.heatpumpRunning = heatpump.running;
 
   let woodStove = null;
@@ -3654,9 +3687,50 @@ function buildScene(card) {
   // Tank above the buffer: the buffer has a single inlet, so the return of the
   // tank's coil joins the heat pump's flow just before it. The heat pump's
   // return then runs through the 3-way valve (drawn in the stove block).
-  const mergeX = woodToDhw && dhwAbove && config.buffer ? hpRight + 70 : null;
+  const mergeX = woodToDhw && dhwAbove && config.buffer ? (hpBelow ? bufX - 80 : hpRight + 70) : null;
+  // channels left of the buffer when the heat pump stands below it
+  const xFlowV = bufX !== null ? bufX - 95 : 0;
+  const xValve = bufX !== null ? bufX - 38 : 0;
 
-  if (config.buffer) {
+  if (config.buffer && hpBelow) {
+    drawPipe(scene, {
+      points: [
+        [xFlowV, hpY],
+        [xFlowV, bufferFlowY],
+        [mergeX !== null ? mergeX : bufX, bufferFlowY],
+      ],
+      role: "flow",
+      from: config.heatpump.flow_temp,
+      to: mergeX !== null ? config.heatpump.flow_temp : config.buffer.top,
+      active: heatpump.running,
+    });
+    if (mergeX !== null) {
+      drawPipe(scene, {
+        points: [
+          [mergeX, bufferFlowY],
+          [bufX, bufferFlowY],
+        ],
+        role: "flow",
+        from: config.heatpump.flow_temp,
+        to: config.buffer.top,
+        active: (hass) => heatpump.running(hass) || woodStove.running(hass),
+      });
+    }
+    // without the stove's 3-way valve the return simply runs down to the pump
+    if (!(woodToDhw && dhwAbove)) {
+      drawPipe(scene, {
+        points: [
+          [bufX, bufferReturnY],
+          [xValve, bufferReturnY],
+          [xValve, hpY],
+        ],
+        role: "return",
+        from: config.buffer.bottom,
+        to: config.heatpump.return_temp,
+        active: heatpump.running,
+      });
+    }
+  } else if (config.buffer) {
     const mid = hpRight + 55;
     if (mergeX !== null) {
       drawPipe(scene, {
@@ -3874,12 +3948,17 @@ function buildScene(card) {
     });
     // valve -> heat pump return
     drawPipe(scene, {
-      points: [
-        [valveX - 13, valveY],
-        [hpMid + 26, valveY],
-        [hpMid + 26, hpReturnY],
-        [hpRight, hpReturnY],
-      ],
+      points: hpBelow
+        ? [
+            [valveX, valveY + 13],
+            [valveX, hpY],
+          ]
+        : [
+            [valveX - 13, valveY],
+            [hpMid + 26, valveY],
+            [hpMid + 26, hpReturnY],
+            [hpRight, hpReturnY],
+          ],
       role: "return",
       from: config.buffer.bottom,
       to: config.heatpump.return_temp,
@@ -3897,26 +3976,31 @@ function buildScene(card) {
       to: config.buffer.bottom,
       active: locked,
     });
-    // return lift -> stove return
+    // return lift -> stove return. The return lift keeps this about 3 K below the
+    // stove's flow, so without a sensor of its own it takes the flow's colour.
+    const stoveBack = stove.return_temp || stove.flow_temp;
     drawPipe(scene, {
       points: [
         [mixX - 13, mixY],
         [hpRight, mixY],
       ],
       role: "return",
-      from: stove.return_temp,
-      to: stove.return_temp,
+      from: stoveBack,
+      to: stoveBack,
       active: (hass) => locked(hass) || stoveRunning(hass),
     });
 
     // 3-way symbol: two triangles across, one up
-    const threeWay = (x, y, title) => {
+    const threeWay = (x, y, title, below) => {
       const el = svgEl("g", { class: "hpfc-valve" });
+      const toLeft = below
+        ? `M ${x - 11} ${y + 12} L ${x} ${y} L ${x + 11} ${y + 12} Z `
+        : `M ${x - 12} ${y - 11} L ${x} ${y} L ${x - 12} ${y + 11} Z `;
       el.appendChild(
         svgEl("path", {
           class: "hpfc-valve-body",
           d:
-            `M ${x - 12} ${y - 11} L ${x} ${y} L ${x - 12} ${y + 11} Z ` +
+            toLeft +
             `M ${x + 12} ${y - 11} L ${x} ${y} L ${x + 12} ${y + 11} Z ` +
             `M ${x - 11} ${y - 12} L ${x} ${y} L ${x + 11} ${y - 12} Z`,
         })
@@ -3927,7 +4011,7 @@ function buildScene(card) {
       scene.root.appendChild(el);
       return el;
     };
-    const valveEl = threeWay(valveX, valveY, wsTexts.return_valve);
+    const valveEl = threeWay(valveX, valveY, wsTexts.return_valve, hpBelow);
     if (valveField) {
       attachAction(scene, valveEl, {
         entity: valveField.entity,
@@ -3961,7 +4045,10 @@ function buildScene(card) {
     if (stove.lock_heatpump) {
       const lock = svgEl("g", { class: "hpfc-hp-lock" });
       scene.root.appendChild(lock);
-      drawChip(scene, lock, { x: hpX + (G.hp.w - 116) / 2, y: wsY + wsHeight + wsGap / 2 - 10, w: 116, h: 20 }, null, {
+      const lockBox = hpBelow
+        ? { x: hpDrawX + 84, y: hpY - 34, w: 116, h: 20 }
+        : { x: hpX + (G.hp.w - 116) / 2, y: wsY + wsHeight + wsGap / 2 - 10, w: 116, h: 20 };
+      drawChip(scene, lock, lockBox, null, {
         text: wsTexts.hp_locked,
         resolve: () => ({ text: textsFor(scene.hass()).hp_locked }),
       });
@@ -4131,17 +4218,31 @@ function buildScene(card) {
     });
   }
 
-  if (config.heatpump.flow_temp) {
+  // Below the buffer the heat pump's flow and return are measured right at the
+  // buffer, so that is where their badges go.
+  if (hpBelow) {
+    if (config.heatpump.flow_temp) {
+      drawBadge(scene, xFlowV, bufferFlowY + 44, config.heatpump.flow_temp, {
+        label: textsFor(scene.hass()).flow,
+      });
+    }
+    if (config.heatpump.return_temp) {
+      drawBadge(scene, xValve, bufferReturnY + 42, config.heatpump.return_temp, {
+        label: textsFor(scene.hass()).ret,
+      });
+    }
+  }
+  if (!hpBelow && config.heatpump.flow_temp) {
     drawBadge(scene, hpRight + 28, hpFlowY - 16, config.heatpump.flow_temp, {
       label: textsFor(scene.hass()).flow,
     });
   }
-  if (config.heatpump.return_temp) {
+  if (!hpBelow && config.heatpump.return_temp) {
     drawBadge(scene, hpRight + 28, hpReturnY + 17, config.heatpump.return_temp, {
       label: textsFor(scene.hass()).ret,
     });
   }
-  if (config.heatpump.flow_rate) {
+  if (!hpBelow && config.heatpump.flow_rate) {
     drawBadge(scene, hpRight + 28, hpFlowY + 17, config.heatpump.flow_rate, {
       label: textsFor(scene.hass()).flow_rate,
     });
@@ -4174,6 +4275,15 @@ function buildScene(card) {
       from: consumers[0] ? consumers[0].cfg.return_temp : null,
       to: config.buffer.bottom,
       active: anyConsumer,
+    });
+  }
+  if (config.circuit_pump && consumers.length) {
+    const trunkFrom = config.buffer ? bufX + G.buffer.w : hpRight;
+    const trunkTo = flowRailX;
+    drawPump(scene, scene.root, Math.round((trunkFrom + trunkTo) / 2), bufferFlowY, config.circuit_pump, {
+      radius: 12,
+      label: textsFor(scene.hass()).circuit_pump,
+      running: anyConsumer,
     });
   }
 
@@ -5188,6 +5298,10 @@ const EDITOR_TEXTS = {
     cop: "COP / efficiency",
     flow_temp: "Flow temperature",
     return_temp: "Return temperature",
+    circuit_pump: "Circulation pump of all heating circuits (entity)",
+    hp_position: "Position of the heat pump",
+    hp_left: "Left column",
+    hp_below: "Below the buffer",
     dhw_position: "Position of the tank",
     position_right: "Next to the heating circuits (on the buffer)",
     position_above: "Above the buffer (own heat source)",
@@ -5297,6 +5411,10 @@ const EDITOR_TEXTS = {
     cop: "COP / Arbeitszahl",
     flow_temp: "Vorlauftemperatur",
     return_temp: "Rücklauftemperatur",
+    circuit_pump: "Umwälzpumpe aller Heizkreise (Entität)",
+    hp_position: "Position der Wärmepumpe",
+    hp_left: "Linke Spalte",
+    hp_below: "Unter dem Pufferspeicher",
     dhw_position: "Position des Speichers",
     position_right: "Bei den Heizkreisen (am Pufferspeicher)",
     position_above: "Über dem Pufferspeicher (eigener Erzeuger)",
@@ -5481,9 +5599,25 @@ class HeatpumpFlowCardEditor extends HTMLElement {
       }
       // Where the wood stove delivers its heat: the buffer (default) or the
       // coil of the hot water tank on a loop of its own.
+      if (key === "heatpump") {
+        rows.splice(2, 0, {
+          name: "position",
+          label: texts.hp_position,
+          selector: {
+            select: {
+              mode: "dropdown",
+              options: [
+                { value: "left", label: texts.hp_left },
+                { value: "below_buffer", label: texts.hp_below },
+              ],
+            },
+          },
+        });
+      }
       if (key === "dhw") {
         rows.splice(2, 0, {
           name: "position",
+          label: texts.dhw_position,
           selector: {
             select: {
               mode: "dropdown",
@@ -5588,6 +5722,7 @@ class HeatpumpFlowCardEditor extends HTMLElement {
       }
     }
 
+    schema.push({ name: "circuit_pump", selector: { entity: {} } });
     schema.push({
       name: "circuit_count",
       selector: { number: { min: 0, max: MAX_CIRCUITS, step: 1, mode: "box" } },
@@ -5656,6 +5791,13 @@ class HeatpumpFlowCardEditor extends HTMLElement {
       data.heatpump.ref_circuit = data.heatpump.ref_circuit !== false;
     }
     if (data.heatpump.fan !== undefined) data.heatpump.fan = data.heatpump.fan !== false;
+    if (data.heatpump.position !== "below_buffer") data.heatpump.position = "left";
+    // the one circulation pump of all circuits: the form edits the entity only
+    this._circuitPumpRaw = config.circuit_pump;
+    data.circuit_pump =
+      typeof config.circuit_pump === "string"
+        ? config.circuit_pump
+        : (config.circuit_pump && config.circuit_pump.entity) || "";
     for (const key of ["buffer", "dhw", "dhw_heatpump", "pv", "solar", "wood_stove"]) {
       const raw = config[key];
       data[`show_${key}`] =
@@ -5724,6 +5866,12 @@ class HeatpumpFlowCardEditor extends HTMLElement {
     config.heatpump = clean(data.heatpump, "heatpump");
     if (config.heatpump.ref_circuit !== false) delete config.heatpump.ref_circuit;
     if (config.heatpump.fan !== false) delete config.heatpump.fan;
+    if (config.heatpump.position !== "below_buffer") delete config.heatpump.position;
+    if (data.circuit_pump) {
+      const raw = this._circuitPumpRaw;
+      config.circuit_pump =
+        raw && typeof raw === "object" && raw.entity === data.circuit_pump ? raw : data.circuit_pump;
+    }
     for (const key of ["buffer", "dhw", "dhw_heatpump", "pv", "solar", "wood_stove"]) {
       if (!data[`show_${key}`]) {
         if (preset.sections.includes(key)) config[key] = false;
