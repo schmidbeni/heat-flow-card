@@ -10,7 +10,7 @@
 (() => {
 "use strict";
 
-const CARD_VERSION = "1.10.4";
+const CARD_VERSION = "1.10.5";
 
 console.info(
   `%c HEAT-FLOW-CARD %c v${CARD_VERSION} `,
@@ -1215,6 +1215,23 @@ function fanBlades(radius) {
   return blades;
 }
 
+/** "800 l" - the content of a tank, from the configuration or from an entity. */
+function volumeText(hass, volume) {
+  if (!volume) return "";
+  let value = null;
+  if (typeof volume.value === "number") value = volume.value;
+  else if (volume.entity) value = numberValue(hass, volume);
+  if (value === null || value === undefined) return "";
+  const language = (hass && hass.locale && hass.locale.language) || (hass && hass.language) || undefined;
+  let formatted;
+  try {
+    formatted = new Intl.NumberFormat(language, { maximumFractionDigits: 0 }).format(value);
+  } catch (error) {
+    formatted = String(Math.round(value));
+  }
+  return `${formatted} l`;
+}
+
 /** Circulation pump: housing plus a spinning impeller. */
 function drawPump(scene, group, cx, cy, field, options) {
   const opts = options || {};
@@ -1983,13 +2000,23 @@ function drawTank(scene, box, cfg, options) {
 
   const layers = opts.layers || [];
   const positions =
-    layers.length === 1 ? [0.5] : layers.length === 2 ? [0.26, 0.7] : [0.18, 0.47, 0.75];
+    opts.positions ||
+    (layers.length === 1 ? [0.5] : layers.length === 2 ? [0.26, 0.7] : [0.18, 0.47, 0.75]);
+  const pillHeight = opts.pillHeight || 24;
   layers.forEach((layer, index) => {
     if (layer.pill === false) return;
     const y = tank.y + tank.h * positions[index];
     const pill = svgEl("g", { class: "hpfc-tank-pill" });
-    const rect = svgEl("rect", { x: tank.x + 8, y: y - 12, width: tank.w - 16, height: 24, rx: 12 });
-    const text = svgText(tank.x + tank.w / 2, y + 5, "–", { "text-anchor": "middle" });
+    const rect = svgEl("rect", {
+      x: tank.x + 8,
+      y: y - pillHeight / 2,
+      width: tank.w - 16,
+      height: pillHeight,
+      rx: pillHeight / 2,
+    });
+    const text = svgText(tank.x + tank.w / 2, y + Math.round(pillHeight / 2 - 7), "–", {
+      "text-anchor": "middle",
+    });
     pill.appendChild(rect);
     pill.appendChild(text);
     group.appendChild(pill);
@@ -2007,6 +2034,20 @@ function drawTank(scene, box, cfg, options) {
       pill.classList.toggle("hpfc-unset", !layer.field || isMissing(stateOf(hass, layer.field)));
     });
   });
+
+  // The content in litres sits between the top and the middle temperature.
+  if (opts.volume) {
+    const first = positions[0];
+    const second = layers.length >= 2 ? positions[1] : first + 0.34;
+    const volumeLabel = svgText(tank.x + tank.w / 2, tank.y + tank.h * ((first + second) / 2) + 4, "", {
+      class: "hpfc-tank-volume",
+      "text-anchor": "middle",
+    });
+    group.appendChild(volumeLabel);
+    scene.add(() => {
+      volumeLabel.textContent = volumeText(scene.hass(), opts.volume);
+    });
+  }
 
   if (opts.entity || opts.tap_action) {
     attachAction(scene, group, {
@@ -2997,7 +3038,7 @@ function drawDhw(scene, box, cfg) {
         return isActive(hass, { entity: cfg.entity });
       }
     }
-    const current = numberValue(hass, cfg.temp);
+    const current = numberValue(hass, cfg.temp || cfg.top || cfg.middle);
     const target = numberValue(hass, cfg.target_temp);
     if (current !== null && target !== null) return current < target - 1;
     return false;
@@ -3027,13 +3068,25 @@ function drawDhw(scene, box, cfg) {
     });
   }
 
+  // With temperatures at several heights, or a content, the tank grows into the
+  // same kind of tank as the buffer: temperature pills and the litres between.
+  const layerKeys = ["top", "middle", "bottom"].filter((key) => cfg[key]);
+  const rich = layerKeys.length > 0 || Boolean(cfg.volume);
+  const coilPositions = { 1: [0.3], 2: [0.16, 0.4], 3: [0.1, 0.29, 0.48] };
   drawTank(
     scene,
-    { x: box.x + 14, y: box.y + 32, w: 46, h: box.h - 46 },
+    rich
+      ? { x: box.x + 14, y: box.y + 30, w: 78, h: box.h - 40 }
+      : { x: box.x + 14, y: box.y + 32, w: 46, h: box.h - 46 },
     cfg,
     {
       radius: 16,
-      layers: [{ label: texts.dhw, field: cfg.temp, pill: false }],
+      layers: layerKeys.length
+        ? layerKeys.map((key) => ({ label: `${cfg.name || texts.dhw} – ${texts[key]}`, field: cfg[key] }))
+        : [{ label: texts.dhw, field: cfg.temp, pill: rich }],
+      positions: rich && cfg.coil ? coilPositions[Math.max(layerKeys.length, 1)] : undefined,
+      pillHeight: rich ? 22 : undefined,
+      volume: cfg.volume,
       coil: Boolean(cfg.coil),
       heater: cfg.heater,
       heaterPower: cfg.heater_power,
@@ -3046,14 +3099,17 @@ function drawDhw(scene, box, cfg) {
   );
 
   const columns = [
-    { label: cfg.temp && cfg.temp.name ? cfg.temp.name : texts.current, field: cfg.temp, colorize: true },
+    layerKeys.length
+      ? null
+      : { label: cfg.temp && cfg.temp.name ? cfg.temp.name : texts.current, field: cfg.temp, colorize: true },
     cfg.target_temp ? { label: texts.target, field: cfg.target_temp } : null,
     cfg.charge ? { label: cfg.charge.name || texts.charge, field: cfg.charge } : null,
     cfg.pump ? { label: texts.pump, field: cfg.pump } : null,
   ].filter(Boolean);
-  const width = (box.w - 90) / Math.max(columns.length, 1);
+  const columnX = rich ? 106 : 76;
+  const width = (box.w - columnX - 14) / Math.max(columns.length, 1);
   columns.slice(0, 3).forEach((column, index) => {
-    drawReadout(scene, group, box.x + 76 + width * index, box.y + 50, column.label, column.field, {
+    drawReadout(scene, group, box.x + columnX + width * index, box.y + 50, column.label, column.field, {
       colorize: column.colorize,
       strong: index === 0,
     });
@@ -3137,9 +3193,13 @@ const SECTION_FIELDS = {
   solar: ["collector_temp", "pump", "yield", "return_temp", "flow_temp"],
   wood_stove: ["state_entity", "status", "flow_temp", "return_temp", "return_pump", "return_valve"],
   dhw_heatpump: ["state_entity", "status", "mode", "power", "cop", "flow_temp", "return_temp", "outside_temp", "compressor"],
-  buffer: ["top", "middle", "bottom", "charge", "heater", "heater_power", "heater_temp", "heater_mode"],
+  buffer: ["top", "middle", "bottom", "charge", "volume", "heater", "heater_power", "heater_temp", "heater_mode"],
   dhw: [
     "temp",
+    "top",
+    "middle",
+    "bottom",
+    "volume",
     "target_temp",
     "charge",
     "pump",
@@ -3191,6 +3251,28 @@ const AUTO_ATTRIBUTES = {
   room_temp: { climate: "current_temperature" },
 };
 
+/**
+ * A tank's content in litres: a plain number from the configuration, or an
+ * entity that reports it.
+ */
+function parseVolume(value) {
+  if (value === undefined || value === null || value === "") return null;
+  if (typeof value === "number") return Number.isFinite(value) && value > 0 ? { value } : null;
+  if (typeof value === "string") {
+    const text = value.trim();
+    // "1'200" or "1.200" is twelve hundred, "1,5" is one and a half
+    if (/^\d{1,3}([.'\u2019\s]\d{3})+$/.test(text)) return { value: Number(text.replace(/[.'\u2019\s]/g, "")) };
+    const plain = text.replace(",", ".");
+    if (/^\d+(\.\d+)?$/.test(plain)) return { value: Number(plain) };
+    return asField(value);
+  }
+  if (typeof value === "object") {
+    if (typeof value.value === "number" && value.value > 0) return { value: value.value };
+    return asField(value);
+  }
+  return null;
+}
+
 function normalizeSection(raw, fields) {
   if (!raw || typeof raw !== "object") return {};
   const result = {};
@@ -3223,6 +3305,12 @@ function normalizeSection(raw, fields) {
       if (attribute) field.attribute = attribute;
     }
     result[target] = field;
+  }
+
+  if (fields.includes("volume")) {
+    delete result.volume;
+    const volume = parseVolume(raw.volume !== undefined ? raw.volume : raw.capacity);
+    if (volume) result.volume = volume;
   }
 
   // Custom consumers on the energy bus: each entry keeps its own entity,
@@ -3469,7 +3557,11 @@ function buildScene(card) {
   const G = GEOMETRY;
   const consumerWidth = config.dense ? 268 : 304;
   const circuitHeight = config.dense ? 118 : 134;
-  const dhwHeight = 118;
+  // A tank with temperatures at three heights or a content is a taller panel.
+  const dhwRich = Boolean(
+    config.dhw && (config.dhw.top || config.dhw.middle || config.dhw.bottom || config.dhw.volume)
+  );
+  const dhwHeight = dhwRich ? 240 : 118;
   const showSources = Boolean(config.pv || config.solar);
   const hpHeight =
     G.hp.h +
@@ -3498,7 +3590,9 @@ function buildScene(card) {
   const hpbBufY = G.pad + (dhwHp ? 24 : 0) + dhwHeight + 40;
   const hpbBufH = config.dense ? 240 : G.buffer.max;
   const hpbY = hpbBufY + hpbBufH + 48;
-  const hpbStoveY = G.pad + (dhwHp ? dhwHpHeight + 36 : 60);
+  // the stove starts level with the buffer (but below the tank's heat pump), which
+  // keeps its pipes clear of the heat pump's flow into the buffer
+  const hpbStoveY = Math.max(G.pad + (dhwHp ? dhwHpHeight + 36 : 60), hpbBufY);
   const leftHeight = config.wood_stove ? hpHeight + wsGap + wsHeight : hpHeight;
 
   // ---- horizontal placement -------------------------------------------
@@ -3632,6 +3726,7 @@ function buildScene(card) {
       entity: config.buffer.entity,
       tap_action: config.buffer.tap_action,
       layers: used.map((key) => ({ label: texts[key], field: config.buffer[key] })),
+      volume: config.buffer.volume,
     });
   }
 
@@ -3660,8 +3755,8 @@ function buildScene(card) {
     const above = drawDhw(scene, dhwBox, config.dhw);
     above.group.setAttribute("data-part", "dhw");
     // the heat pump's pipes use the upper ports, the stove's coil the lower ones
-    dhwBox.inletY = dhwBox.y + (dhwHp ? 66 : 40);
-    dhwBox.outletY = dhwBox.y + (dhwHp ? 104 : dhwBox.h - 30);
+    dhwBox.inletY = dhwBox.y + (dhwRich ? 182 : dhwHp ? 66 : 40);
+    dhwBox.outletY = dhwBox.y + (dhwRich ? 222 : dhwHp ? 104 : dhwBox.h - 30);
   }
 
   let dhwHeatpump = null;
@@ -4222,7 +4317,7 @@ function buildScene(card) {
   // buffer, so that is where their badges go.
   if (hpBelow) {
     if (config.heatpump.flow_temp) {
-      drawBadge(scene, xFlowV, bufferFlowY + 44, config.heatpump.flow_temp, {
+      drawBadge(scene, xFlowV, bufferFlowY + 22, config.heatpump.flow_temp, {
         label: textsFor(scene.hass()).flow,
       });
     }
@@ -4728,6 +4823,7 @@ ha-card.hpfc-has-title { padding-top: 4px; }
 .hpfc-tank-outline { fill: none; stroke: var(--hpfc-stroke); stroke-width: 1.5; }
 .hpfc-tank-pill rect { fill: rgba(0, 0, 0, 0.34); }
 .hpfc-tank-pill text { font-size: 11px; font-weight: 700; fill: #ffffff; }
+.hpfc-tank-volume { font-size: 12px; font-weight: 600; fill: #ffffff; opacity: 0.85; }
 .hpfc-coil { fill: none; stroke: rgba(255, 255, 255, 0.7); stroke-width: 3; stroke-linecap: round; }
 
 /* sources --------------------------------------------------------------- */
@@ -5302,6 +5398,7 @@ const EDITOR_TEXTS = {
     hp_position: "Position of the heat pump",
     hp_left: "Left column",
     hp_below: "Below the buffer",
+    volume: "Content (litres)",
     dhw_position: "Position of the tank",
     position_right: "Next to the heating circuits (on the buffer)",
     position_above: "Above the buffer (own heat source)",
@@ -5415,6 +5512,7 @@ const EDITOR_TEXTS = {
     hp_position: "Position der Wärmepumpe",
     hp_left: "Linke Spalte",
     hp_below: "Unter dem Pufferspeicher",
+    volume: "Inhalt (Liter)",
     dhw_position: "Position des Speichers",
     position_right: "Bei den Heizkreisen (am Pufferspeicher)",
     position_above: "Über dem Pufferspeicher (eigener Erzeuger)",
@@ -5497,6 +5595,9 @@ const EDITOR_SECTIONS = {
   buffer: ["top", "middle", "bottom", "charge", "heater", "heater_power", "heater_temp", "heater_mode"],
   dhw: [
     "temp",
+    "top",
+    "middle",
+    "bottom",
     "target_temp",
     "mode",
     "boost",
@@ -5599,6 +5700,12 @@ class HeatpumpFlowCardEditor extends HTMLElement {
       }
       // Where the wood stove delivers its heat: the buffer (default) or the
       // coil of the hot water tank on a loop of its own.
+      if (key === "buffer" || key === "dhw") {
+        rows.splice(2, 0, {
+          name: "volume",
+          selector: { number: { min: 0, max: 100000, step: 10, mode: "box", unit_of_measurement: "l" } },
+        });
+      }
       if (key === "heatpump") {
         rows.splice(2, 0, {
           name: "position",
